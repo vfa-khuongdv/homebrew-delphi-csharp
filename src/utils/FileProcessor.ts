@@ -128,7 +128,7 @@ export class FileProcessor {
    */
   isDelphiFile(filePath: string): boolean {
     const ext = path.extname(filePath).toLowerCase();
-    return ['.pas', '.dpr', '.dpk', '.inc'].includes(ext);
+    return ['.pas', '.dpr', '.dpk', '.inc', '.dfm'].includes(ext);
   }
 
   /**

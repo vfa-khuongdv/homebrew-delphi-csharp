@@ -26,7 +26,8 @@ export class ConfigManager {
 
   private constructor() {
     this.configPath = path.join(os.homedir(), '.delphi-to-csharp-config.json');
-    this.loadConfig();
+    // Load config synchronously during initialization
+    this.loadConfigSync();
   }
 
   static getInstance(): ConfigManager {
@@ -42,6 +43,20 @@ export class ConfigManager {
   private async loadConfig(): Promise<void> {
     try {
       const configData = await fs.readFile(this.configPath, 'utf-8');
+      this.config = JSON.parse(configData);
+    } catch (error) {
+      // Config file doesn't exist or is invalid, use defaults
+      this.config = this.getDefaultConfig();
+    }
+  }
+
+  /**
+   * Load configuration from file synchronously
+   */
+  private loadConfigSync(): void {
+    try {
+      const fs = require('fs');
+      const configData = fs.readFileSync(this.configPath, 'utf-8');
       this.config = JSON.parse(configData);
     } catch (error) {
       // Config file doesn't exist or is invalid, use defaults
@@ -116,7 +131,23 @@ export class ConfigManager {
     const envKey = this.getEnvKeyForProvider(provider);
     const configKey = this.getConfigKeyForProvider(provider);
     
-    return process.env[envKey] || (this.config[configKey] as string) || '';
+    // Priority: environment variable > config file
+    const envValue = process.env[envKey];
+    if (envValue) {
+      return envValue;
+    }
+    
+    const configValue = this.config[configKey] as string;
+    if (configValue) {
+      return configValue;
+    }
+    
+    // For Ollama, API key is not required
+    if (provider === 'ollama') {
+      return '';
+    }
+    
+    throw new Error(`API key not found for provider: ${provider}. Please set ${envKey} environment variable or run setup command.`);
   }
 
   /**

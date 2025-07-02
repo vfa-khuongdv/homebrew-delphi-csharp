@@ -200,14 +200,14 @@ convert <input> [options]
 **Examples:**
 ```bash
 # Basic conversion
-node dist/cli.js convert src/Calculator.pas
+node dist/cli.js convert ./examples/tests/Calculator.pas
 
 # Preserve directory structure
-node dist/cli.js convert src/models/Person.pas --preserve-structure --base-dir src
-# Result: output/models/Person.cs
+node dist/cli.js convert ./examples/tests/models/Person.pas --preserve-structure --base-dir ./examples
+# Result: output/tests/models/Person.cs
 
 # Custom output with specific model
-node dist/cli.js convert MyClass.pas -o converted/MyClass.cs -m gpt-4o
+node dist/cli.js convert ./examples/tests/models/Calculator.pas -o ./converted/models/Calculator.cs -m gpt-4o
 ```
 
 ### `batch` - Convert multiple files
@@ -229,19 +229,22 @@ Convert all Delphi source files in a directory and its subdirectories.
 **Examples:**
 ```bash
 # Convert all files in project folder (preserves structure by default)
-node dist/cli.js batch ./MyDelphiProject
+node dist/cli.js batch ./examples/tests
 
 # Use specific provider and model
-node dist/cli.js batch ./src -p anthropic -m claude-3-5-sonnet-20241022
+node dist/cli.js batch ./examples/tests -p anthropic -m claude-3-5-sonnet-20241022
 
 # Custom output directory with structure preservation
-node dist/cli.js batch ./legacy-code -o ./modernized --preserve-structure
+node dist/cli.js batch ./examples/tests -o ./modernized --preserve-structure
+
+# Convert tests examples with structure preservation
+node dist/cli.js batch ./examples/tests --preserve-structure
 
 # Flat output (no structure preservation)
-node dist/cli.js batch ./units -o ./converted --no-preserve-structure
+node dist/cli.js batch ./examples/tests -o ./converted --no-preserve-structure
 
 # Only convert .pas files
-node dist/cli.js batch ./units --pattern "**/*.pas"
+node dist/cli.js batch ./examples/tests --pattern "**/*.pas"
 ```
 
 **Directory Structure Example:**
@@ -429,22 +432,24 @@ delphi-to-csharp-converter/
 │   └── utils/
 │       ├── FileProcessor.ts            # File operations & structure preservation
 │       └── LLMFactory.ts               # Multi-provider LLM factory
-├── examples/                           # Example Delphi files
-│   ├── Calculator.pas                  # Simple calculator class
-│   ├── Employee.pas                    # Complex class with imports
-│   ├── CompanyManager.pas              # Multiple imports example
-│   ├── models/
-│   │   └── Person.pas                  # Base person class
-│   └── utils/
-│       └── StringHelper.pas            # String utility functions
-└── output/                            # Converted C# files (preserves structure)
-    ├── Calculator.cs
-    ├── Employee.cs
-    ├── CompanyManager.cs
-    ├── models/
-    │   └── Person.cs
-    └── utils/
-        └── StringHelper.cs
+├── examples/
+│   └── tests/                           # Example Delphi files
+│       ├── Calculator.pas               # Simple calculator class
+│       ├── Employee.pas                 # Complex class with imports
+│       ├── CompanyManager.pas           # Multiple imports example
+│       ├── models/
+│       │   └── Person.pas               # Base person class
+│       └── utils/
+│           └── StringHelper.pas         # String utility functions
+└── output/
+    └── tests/                           # Converted C# files (preserves structure)
+        ├── Calculator.cs
+        ├── Employee.cs
+        ├── CompanyManager.cs
+        ├── models/
+        │   └── Person.cs
+        └── utils/
+            └── StringHelper.cs
 ```
 
 ## 🔧 Development
@@ -510,8 +515,8 @@ Run `node dist/cli.js setup` for guided configuration of any provider.
 ## 🧪 Testing
 
 The project includes example files for testing:
-- `examples/Calculator.pas` - Basic class example
-- `examples/Person.pas` - Properties and methods example
+- `examples/tests/Calculator.pas` - Basic class example
+- `examples/tests/Person.pas` - Properties and methods example
 
 ## 📝 Supported Delphi Features
 
