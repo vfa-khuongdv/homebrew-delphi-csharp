@@ -35,9 +35,10 @@ export class DelphiToCSharpConverter {
     const llmConfig: LLMConfig = {
       provider: defaultProvider,
       model: config.getConfig().defaultModel || 'gpt-4o-mini',
-      apiKey: config.getApiKeyForProvider(defaultProvider),
+      apiKey: defaultProvider === 'ollama' ? '' : config.getApiKeyForProvider(defaultProvider),
       temperature: 0.1,
-      maxTokens: 4000
+      maxTokens: 4000,
+      baseURL: this.getBaseURLForProvider(defaultProvider)
     };
 
     this.chatModel = LLMFactory.createLLM(llmConfig);
@@ -73,9 +74,10 @@ export class DelphiToCSharpConverter {
         const llmConfig: LLMConfig = {
           provider: provider,
           model: options.model || this.config.getConfig().defaultModel || 'gpt-4o-mini',
-          apiKey: this.config.getApiKeyForProvider(provider),
+          apiKey: provider === 'ollama' ? '' : this.config.getApiKeyForProvider(provider),
           temperature: 0.1,
-          maxTokens: 4000
+          maxTokens: 4000,
+          baseURL: this.getBaseURLForProvider(provider)
         };
 
         this.chatModel = LLMFactory.createLLM(llmConfig);
@@ -157,5 +159,19 @@ Your task is to convert Delphi code to equivalent, idiomatic C# code while:
 - Preserving comments and documentation when requested
 
 Always provide clean, well-formatted C# code that follows modern C# practices.`;
+  }
+
+  /**
+   * Get base URL for a specific provider
+   */
+  private getBaseURLForProvider(provider: LLMProvider): string | undefined {
+    switch (provider) {
+      case 'ollama':
+        return this.config.getConfig().ollamaBaseURL || 'http://localhost:11434';
+      case 'azure':
+        return this.config.getConfig().baseURL;
+      default:
+        return undefined;
+    }
   }
 }

@@ -38,6 +38,7 @@
     "@langchain/anthropic": "^0.3.23",
     "@langchain/core": "^0.3.61",
     "@langchain/google-genai": "^0.2.14",
+    "@langchain/ollama": "^0.2.3",
     "@langchain/openai": "^0.5.16",
     "@types/inquirer": "^9.0.8",
     "chalk": "^5.4.1",

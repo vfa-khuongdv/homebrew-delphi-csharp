@@ -1,9 +1,10 @@
 import { ChatOpenAI } from '@langchain/openai';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { ChatAnthropic } from '@langchain/anthropic';
+import { ChatOllama } from '@langchain/ollama';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
-export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'azure';
+export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'azure' | 'ollama';
 
 export interface LLMConfig {
   provider: LLMProvider;
@@ -65,6 +66,14 @@ export class LLMFactory {
           maxTokens: config.maxTokens || 4000,
         });
       
+      case 'ollama':
+        return new ChatOllama({
+          baseUrl: config.baseURL || 'http://localhost:11434',
+          model: config.model,
+          temperature: config.temperature || 0.1,
+          numCtx: config.maxTokens || 4000,
+        });
+      
       default:
         throw new Error(`Unsupported LLM provider: ${config.provider}`);
     }
@@ -110,6 +119,24 @@ export class LLMFactory {
           'gemini-1.0-pro-vision'
         ];
       
+      case 'ollama':
+        return [
+          'llama3.2',
+          'llama3.1',
+          'llama3.1:70b',
+          'llama3.1:405b',
+          'codellama',
+          'codellama:13b',
+          'codellama:34b',
+          'deepseek-coder-v2',
+          'qwen2.5-coder',
+          'qwen2.5-coder:14b',
+          'mistral',
+          'mixtral',
+          'phi3',
+          'gemma2'
+        ];
+      
       default:
         return [];
     }
@@ -127,8 +154,9 @@ export class LLMFactory {
       throw new Error('LLM model is required');
     }
 
-    if (!config.apiKey) {
-      throw new Error('API key is required');
+    // API key is not required for Ollama (local)
+    if (config.provider !== 'ollama' && !config.apiKey) {
+      throw new Error('API key is required for remote providers');
     }
 
     const availableModels = this.getAvailableModels(config.provider);
@@ -174,6 +202,15 @@ export class LLMFactory {
           model: 'gemini-2.0-flash',
           temperature: 0.1,
           maxTokens: 4000
+        };
+      
+      case 'ollama':
+        return {
+          provider: 'ollama',
+          model: 'llama3.2',
+          temperature: 0.1,
+          maxTokens: 4000,
+          baseURL: 'http://localhost:11434'
         };
       
       default:

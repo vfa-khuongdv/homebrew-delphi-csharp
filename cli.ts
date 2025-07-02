@@ -25,7 +25,7 @@ program
   .argument('<input>', 'Input Delphi file path')
   .option('-o, --output <path>', 'Output C# file path')
   .option('-m, --model <model>', 'LLM model to use', 'gpt-4o-mini')
-  .option('-p, --provider <provider>', 'LLM provider (openai, azure, anthropic, google)', 'openai')
+  .option('-p, --provider <provider>', 'LLM provider (openai, azure, anthropic, google, ollama)', 'openai')
   .option('-s, --preserve-structure', 'Preserve directory structure in output')
   .option('-b, --base-dir <dir>', 'Base directory for preserving structure (default: input file directory)')
   .option('-v, --verbose', 'Verbose output')
@@ -75,7 +75,7 @@ program
   .argument('<directory>', 'Directory containing Delphi files')
   .option('-o, --output <dir>', 'Output directory for C# files', 'output')
   .option('-m, --model <model>', 'LLM model to use', 'gpt-4o-mini')
-  .option('-p, --provider <provider>', 'LLM provider (openai, azure, anthropic, google)', 'openai')
+  .option('-p, --provider <provider>', 'LLM provider (openai, azure, anthropic, google, ollama)', 'openai')
   .option('-s, --preserve-structure', 'Preserve directory structure in output (default: true)', true)
   .option('--pattern <pattern>', 'File pattern to match', '**/*.{pas,dpr,dpk}')
   .action(async (directory, options) => {
@@ -136,7 +136,8 @@ program
           { name: 'OpenAI', value: 'openai' },
           { name: 'Azure OpenAI', value: 'azure' },
           { name: 'Anthropic Claude', value: 'anthropic' },
-          { name: 'Google Gemini', value: 'google' }
+          { name: 'Google Gemini', value: 'google' },
+          { name: 'Ollama (Local)', value: 'ollama' }
         ],
         default: 'openai'
       },
@@ -160,17 +161,26 @@ program
               return 'Enter your Anthropic API key:';
             case 'google':
               return 'Enter your Google AI API key:';
+            case 'ollama':
+              return 'API key (press enter to skip for local Ollama):';
             default:
               return 'Enter your API key:';
           }
         },
+        when: (answers) => answers.provider !== 'ollama',
         mask: '*'
       },
       {
         type: 'input',
         name: 'baseURL',
-        message: 'Enter base URL (optional, for custom endpoints):',
-        when: (answers) => answers.provider === 'azure'
+        message: (answers) => {
+          if (answers.provider === 'ollama') {
+            return 'Enter Ollama base URL (press enter for default http://localhost:11434):';
+          }
+          return 'Enter base URL (optional, for custom endpoints):';
+        },
+        when: (answers) => answers.provider === 'azure' || answers.provider === 'ollama',
+        default: (answers) => answers.provider === 'ollama' ? 'http://localhost:11434' : ''
       }
     ]);
 
@@ -194,6 +204,10 @@ program
         break;
       case 'google':
         configUpdate.googleApiKey = answers.apiKey;
+        break;
+      case 'ollama':
+        configUpdate.ollamaBaseURL = answers.baseURL || 'http://localhost:11434';
+        // No API key needed for Ollama
         break;
     }
 

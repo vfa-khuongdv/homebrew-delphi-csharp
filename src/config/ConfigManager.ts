@@ -8,6 +8,7 @@ export interface AppConfig {
   openaiApiKey: string;
   anthropicApiKey?: string;
   googleApiKey?: string;
+  ollamaBaseURL?: string;
   defaultModel: string;
   outputDirectory?: string;
   preserveComments?: boolean;
@@ -90,7 +91,12 @@ export class ConfigManager {
    * Validate configuration
    */
   validateConfig(): boolean {
-    if (!this.config.openaiApiKey) {
+    // For Ollama, API key is not required
+    if (this.config.provider === 'ollama') {
+      return true;
+    }
+    
+    if (!this.config.openaiApiKey && this.config.provider === 'openai') {
       throw new Error('OpenAI API key is required. Run "setup" command first.');
     }
     return true;
@@ -125,6 +131,8 @@ export class ConfigManager {
         return 'ANTHROPIC_API_KEY';
       case 'google':
         return 'GOOGLE_API_KEY';
+      case 'ollama':
+        return 'OLLAMA_BASE_URL';
       default:
         return 'API_KEY';
     }
@@ -142,6 +150,8 @@ export class ConfigManager {
         return 'anthropicApiKey';
       case 'google':
         return 'googleApiKey';
+      case 'ollama':
+        return 'ollamaBaseURL';
       default:
         return 'openaiApiKey';
     }
