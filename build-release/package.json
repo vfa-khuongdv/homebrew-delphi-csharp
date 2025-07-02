@@ -1,0 +1,50 @@
+{
+  "name": "delphi-to-csharp-converter",
+  "version": "1.0.0",
+  "description": "A TypeScript CLI application that converts Delphi code to C# using Large Language Models",
+  "main": "cli.js",
+  "bin": {
+    "delphi-csharp": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "dev": "ts-node cli.ts",
+    "watch": "tsc --watch",
+    "clean": "rimraf dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "delphi",
+    "pascal",
+    "csharp",
+    "converter",
+    "cli",
+    "typescript",
+    "llm",
+    "openai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "nodemon": "^3.1.10",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@langchain/anthropic": "^0.3.23",
+    "@langchain/core": "^0.3.61",
+    "@langchain/google-genai": "^0.2.14",
+    "@langchain/openai": "^0.5.16",
+    "@types/inquirer": "^9.0.8",
+    "chalk": "^5.4.1",
+    "commander": "^14.0.0",
+    "dotenv": "^17.0.1",
+    "glob": "^11.0.3",
+    "inquirer": "^12.7.0",
+    "langchain": "^0.3.29"
+  }
+}
