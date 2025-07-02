@@ -8,6 +8,10 @@ class DelphiCsharp < Formula
   depends_on "node"
 
   def install
+    system "npm", "install"
+    system "npm", "run", "build"
+    
+    # Install the built application
     libexec.install Dir["*"]
     (bin/"delphi-csharp").write <<~EOS
       #!/bin/bash
