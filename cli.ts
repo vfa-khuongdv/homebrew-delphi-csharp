@@ -62,7 +62,7 @@ program
         outputPath = options.output;
       } else if (options.preserveStructure) {
         const baseDir = options.baseDir || path.dirname(input);
-        outputPath = fileProcessor.getOutputPathWithStructure(input, 'output', '.cs', baseDir);
+        outputPath = fileProcessor.getOutputPathWithStructure(input, 'output', baseDir);
       } else {
         outputPath = `output/${path.basename(input).replace(/\.(pas|dpr|dpk|dfm|fmx)$/i, '.cs')}`;
       }
@@ -116,7 +116,7 @@ program
             provider: provider as LLMProvider
           }, file);
 
-          const outputPath = fileProcessor.getOutputPathWithStructure(file, options.output, '.cs', directory);
+          const outputPath = fileProcessor.getOutputPathWithStructure(file, options.output, directory);
           await fileProcessor.writeFile(outputPath, csharpCode);
 
           console.log(chalk.green(`✅ Converted: ${file} -> ${outputPath}`));

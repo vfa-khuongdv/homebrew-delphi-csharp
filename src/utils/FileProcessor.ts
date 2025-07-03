@@ -74,8 +74,13 @@ export class FileProcessor {
   /**
    * Get output file path preserving the directory structure relative to a base directory
    */
-  getOutputPathWithStructure(inputPath: string, outputDir: string, newExtension: string, baseDir: string): string {
+  getOutputPathWithStructure(inputPath: string, outputDir: string, baseDir: string): string {
+    const ext = path.extname(inputPath).toLowerCase();
+    const isDesignFile = ['.dfm', '.fmx'].includes(ext);
+
     const fileName = path.basename(inputPath, path.extname(inputPath));
+    const newExtension = isDesignFile ? '.Designer.cs' : '.cs';
+
     const relativePath = path.relative(baseDir, path.dirname(inputPath));
     
     // Handle case where input is directly in base directory
