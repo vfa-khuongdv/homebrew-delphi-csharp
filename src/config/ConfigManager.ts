@@ -9,6 +9,7 @@ export interface AppConfig {
   anthropicApiKey?: string;
   googleApiKey?: string;
   ollamaBaseURL?: string;
+  groqApiKey?: string;
   defaultModel: string;
   outputDirectory?: string;
   preserveComments?: boolean;
@@ -128,6 +129,11 @@ export class ConfigManager {
    * Get API key for specific provider
    */
   getApiKeyForProvider(provider: LLMProvider): string {
+    // For Ollama, API key is not required
+    if (provider === 'ollama') {
+      return '';
+    }
+    
     const envKey = this.getEnvKeyForProvider(provider);
     const configKey = this.getConfigKeyForProvider(provider);
     
@@ -142,8 +148,9 @@ export class ConfigManager {
       return configValue;
     }
     
-    // For Ollama, API key is not required
-    if (provider === 'ollama') {
+    // Default to empty string for optional providers
+    if (provider === 'groq' && !envValue && !configValue) {
+      console.warn(`No API key found for ${provider}, but continuing...`);
       return '';
     }
     
@@ -156,7 +163,6 @@ export class ConfigManager {
   private getEnvKeyForProvider(provider: LLMProvider): string {
     switch (provider) {
       case 'openai':
-      case 'azure':
         return 'OPENAI_API_KEY';
       case 'anthropic':
         return 'ANTHROPIC_API_KEY';
@@ -164,6 +170,8 @@ export class ConfigManager {
         return 'GOOGLE_API_KEY';
       case 'ollama':
         return 'OLLAMA_BASE_URL';
+      case 'groq':
+        return 'GROQ_API_KEY';
       default:
         return 'API_KEY';
     }
@@ -175,7 +183,6 @@ export class ConfigManager {
   private getConfigKeyForProvider(provider: LLMProvider): keyof AppConfig {
     switch (provider) {
       case 'openai':
-      case 'azure':
         return 'openaiApiKey';
       case 'anthropic':
         return 'anthropicApiKey';
@@ -183,6 +190,8 @@ export class ConfigManager {
         return 'googleApiKey';
       case 'ollama':
         return 'ollamaBaseURL';
+      case 'groq':
+        return 'groqApiKey';
       default:
         return 'openaiApiKey';
     }

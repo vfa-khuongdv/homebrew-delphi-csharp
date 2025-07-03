@@ -113,7 +113,7 @@ node dist/cli.js batch ./delphi-source
 node dist/cli.js batch ./delphi-source --output ./converted-csharp
 
 # Disable structure preservation (flat output)
-node dist/cli.js batch ./delphi-source --no-preserve-structure
+node dist/cli.js batch ./examples/003-SearchBTDevices --no-preserve-structure --output ./003-SearchBTDevices
 ```
 
 ### List Converted Files
@@ -224,7 +224,7 @@ Convert all Delphi source files in a directory and its subdirectories.
 - `-s, --preserve-structure` - Preserve directory structure (default: `true`)
 - `-m, --model <model>` - LLM model to use for conversion
 - `-p, --provider <provider>` - LLM provider (openai, anthropic, google, azure)
-- `--pattern <pattern>` - File pattern to match (default: `**/*.{pas,dpr,dpk}`)
+- `--pattern <pattern>` - File pattern to match (default: `**/*.{pas,dpr,dpk,inc,dfm,fmx}`)
 
 **Examples:**
 ```bash
@@ -236,6 +236,10 @@ node dist/cli.js batch ./examples/tests -p anthropic -m claude-3-5-sonnet-202410
 
 # Custom output directory with structure preservation
 node dist/cli.js batch ./examples/tests -o ./modernized --preserve-structure
+
+node dist/cli.js batch ./examples/003-SearchBTDevices --preserve-structure --output ./output/003-SearchBTDevices
+node dist/cli.js batch ./examples/009-ImageListHighDPI --preserve-structure --output ./output/009-ImageListHighDPI
+
 
 # Convert tests examples with structure preservation
 node dist/cli.js batch ./examples/tests --preserve-structure

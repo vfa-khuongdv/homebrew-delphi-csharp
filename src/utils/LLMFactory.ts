@@ -2,9 +2,10 @@ import { ChatOpenAI } from '@langchain/openai';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { ChatAnthropic } from '@langchain/anthropic';
 import { ChatOllama } from '@langchain/ollama';
+import { ChatGroq } from '@langchain/groq';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
-export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'azure' | 'ollama';
+export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'azure' | 'ollama' | 'groq'; 
 
 export interface LLMConfig {
   provider: LLMProvider;
@@ -35,21 +36,7 @@ export class LLMFactory {
             baseURL: config.baseURL
           } : undefined
         });
-      
-      case 'azure':
-        return new ChatOpenAI({
-          openAIApiKey: config.apiKey,
-          modelName: config.model,
-          temperature: config.temperature || 0.1,
-          maxTokens: config.maxTokens || 4000,
-          configuration: {
-            baseURL: config.baseURL,
-            defaultHeaders: {
-              'api-key': config.apiKey
-            }
-          }
-        });
-      
+
       case 'google':
         return new ChatGoogleGenerativeAI({
           apiKey: config.apiKey,
@@ -73,7 +60,14 @@ export class LLMFactory {
           temperature: config.temperature || 0.1,
           numCtx: config.maxTokens || 4000,
         });
-      
+      case 'groq':
+        return new ChatGroq({
+          apiKey: config.apiKey,
+          model: config.model,
+          temperature: config.temperature || 0.1,
+          maxTokens: config.maxTokens || 4000,
+          baseUrl: config.baseURL ? config.baseURL : undefined,
+        });
       default:
         throw new Error(`Unsupported LLM provider: ${config.provider}`);
     }
@@ -91,13 +85,6 @@ export class LLMFactory {
           'gpt-4o',
           'gpt-4o-mini',
           'gpt-3.5-turbo'
-        ];
-      
-      case 'azure':
-        return [
-          'gpt-4',
-          'gpt-4-turbo',
-          'gpt-35-turbo'
         ];
       
       case 'anthropic':
@@ -121,22 +108,15 @@ export class LLMFactory {
       
       case 'ollama':
         return [
-          'llama3.2',
-          'llama3.1',
-          'llama3.1:70b',
-          'llama3.1:405b',
-          'codellama',
-          'codellama:13b',
-          'codellama:34b',
-          'deepseek-coder-v2',
-          'qwen2.5-coder',
-          'qwen2.5-coder:14b',
-          'mistral',
-          'mixtral',
-          'phi3',
-          'gemma2'
+          'qwen2.5-coder:0.5b',
         ];
-      
+        case 'groq':
+        return [
+          'llama3-70b-8192',
+          'meta-llama/llama-4-scout-17b-16e-instruct',
+          'meta-llama/llama-guard-4-12b'
+        ];
+        
       default:
         return [];
     }
@@ -155,7 +135,7 @@ export class LLMFactory {
     }
 
     // API key is not required for Ollama (local)
-    if (config.provider !== 'ollama' && !config.apiKey) {
+    if (!['ollama', 'groq'].includes(config.provider) && !config.apiKey) {
       throw new Error('API key is required for remote providers');
     }
 
@@ -210,8 +190,16 @@ export class LLMFactory {
           model: 'llama3.2',
           temperature: 0.1,
           maxTokens: 4000,
-          baseURL: 'https://milton-tank-only-owen.trycloudflare.com/v1'
+          baseURL: 'http:/localhost:11434' // Default Ollama URL
           // No API key needed for Ollama
+        };
+
+      case 'groq':
+        return {
+          provider: 'groq',
+          model: 'llama3-70b-8192',
+          temperature: 0.1,
+          maxTokens: 4000
         };
       
       default:

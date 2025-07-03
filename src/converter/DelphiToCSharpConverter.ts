@@ -35,7 +35,7 @@ export class DelphiToCSharpConverter {
     const llmConfig: LLMConfig = {
       provider: defaultProvider,
       model: config.getConfig().defaultModel || 'gpt-4o-mini',
-      apiKey: defaultProvider === 'ollama' ? '' : config.getApiKeyForProvider(defaultProvider),
+      apiKey: config.getApiKeyForProvider(defaultProvider),
       temperature: 0.1,
       maxTokens: 4000,
       baseURL: this.getBaseURLForProvider(defaultProvider)
@@ -50,7 +50,7 @@ export class DelphiToCSharpConverter {
   /**
    * Convert Delphi code to C#
    */
-  async convert(delphiCode: string, options: ConversionOptions = {}): Promise<string> {
+  async convert(delphiCode: string, options: ConversionOptions = {}, filePath?: string): Promise<string> {
     try {
       // Parse Delphi code to understand structure
       const parsedStructure = this.delphiParser.parse(delphiCode);
@@ -60,7 +60,7 @@ export class DelphiToCSharpConverter {
       }
 
       // Create conversion prompt
-      const prompt = this.createConversionPrompt(delphiCode, parsedStructure, options);
+      const prompt = this.createConversionPrompt(delphiCode, parsedStructure, options, filePath);
 
       // Create messages for LangChain
       const messages = [
@@ -68,38 +68,47 @@ export class DelphiToCSharpConverter {
         new HumanMessage(prompt)
       ];
 
-      // Update model if specified in options
-      if (options.model || options.provider) {
-        const provider = options.provider || (this.config.getConfig().provider as LLMProvider) || 'openai';
-        const llmConfig: LLMConfig = {
-          provider: provider,
-          model: options.model || this.config.getConfig().defaultModel || 'gpt-4o-mini',
-          apiKey: provider === 'ollama' ? '' : this.config.getApiKeyForProvider(provider),
-          temperature: 0.1,
-          maxTokens: 4000,
-          baseURL: this.getBaseURLForProvider(provider)
-        };
+      // Determine provider and model, prioritizing options over config
+      const provider = options.provider || this.config.getConfig().provider || 'openai';
+      const model = options.model || this.config.getConfig().defaultModel || 'gpt-4o-mini';
 
-        this.chatModel = LLMFactory.createLLM(llmConfig);
-      }
+      const llmConfig: LLMConfig = {
+        provider: provider,
+        model: model,
+        apiKey: this.config.getApiKeyForProvider(provider),
+        temperature: 0.1,
+        maxTokens: 4000,
+        baseURL: this.getBaseURLForProvider(provider)
+      };
+      
+      console.log(`LLM Configuration: Using model '${llmConfig.model}' from provider '${llmConfig.provider}' with base URL '${llmConfig.baseURL}'`);
+
+      // Create a new model instance with the correct configuration for this conversion
+      this.chatModel = LLMFactory.createLLM(llmConfig);
 
       // Call LangChain model
+      console.log('🔄 Invoking LLM...');
       const response = await this.chatModel.invoke(messages);
+      console.log('🔄 LLM response received');
+      
       const csharpCode = await this.outputParser.invoke(response);
 
       if (!csharpCode) {
         throw new Error('No response from LLM');
       }
 
+      console.log('✨ Generated C# code length:', csharpCode.length);
+
       // Post-process and format the generated C# code
       const formattedCode = this.csharpGenerator.formatCode(csharpCode);
 
       if (options.verbose) {
-        console.log('✨ Generated C# code length:', formattedCode.length);
+        console.log('✨ Formatted C# code length:', formattedCode.length);
       }
 
       return formattedCode;
     } catch (error) {
+      console.error(`Conversion failed for ${filePath}:`, error);
       throw new Error(`Conversion failed: ${(error as Error).message}`);
     }
   }
@@ -110,15 +119,17 @@ export class DelphiToCSharpConverter {
   private createConversionPrompt(
     delphiCode: string, 
     parsedStructure: any, 
-    options: ConversionOptions
+    options: ConversionOptions,
+    filePath?: string
   ): string {
     const targetFramework = options.targetFramework || '.NET 6.0';
+    const namespace = this.generateNamespaceFromPath(filePath);
     
     return `Please convert the following Delphi code to C#:
 
 **Target Framework:** ${targetFramework}
 **Preserve Comments:** ${options.preserveComments !== false}
-
+**Namespace:** ${namespace}
 **Delphi Code:**
 \`\`\`pascal
 ${delphiCode}
@@ -135,6 +146,8 @@ ${JSON.stringify(parsedStructure, null, 2)}
 5. Preserve the original logic and functionality
 6. Add using statements as needed
 7. Use proper C# syntax and idioms
+8. Use the suggested namespace: ${namespace} (or a similar meaningful namespace based on the project structure)
+9. Avoid generic namespaces like "YourNamespace", "ConvertedCode", "Namespace1", etc.
 
 Please provide only the converted C# code without explanation.`;
   }
@@ -157,9 +170,52 @@ Your task is to convert Delphi code to equivalent, idiomatic C# code while:
 - Using appropriate .NET types and patterns
 - Ensuring the code compiles and runs correctly
 - Preserving comments and documentation when requested
-- Add // TODO if the C# code similarity is below 100% to mark potential areas needing revision. when using // TODO, provide a brief comment explaining the reason for the TODO and number percent.
+- Add TODO if the C# code similarity is below 100% to mark potential areas needing revision. when using // TODO, provide a brief comment explaining the reason for the TODO and similarity percent. 
+// Example: 
+- // TODO: This code is not 100% similar to Delphi, similarity is 95%.
+- // Suggest: Suggestion for the coder the way to fix or improve the code, if applicable.
 
 Always provide clean, well-formatted C# code that follows modern C# practices.`;
+  }
+
+  /**
+   * Generate a meaningful namespace based on the file path
+   */
+  private generateNamespaceFromPath(filePath?: string): string {
+    if (!filePath) {
+      return 'DefaultNamespace';
+    }
+
+    // Extract path components and create namespace
+    const parts = filePath.split(/[\/\\]/).filter(part => 
+      part && 
+      !part.includes('.') && 
+      part !== 'examples' && 
+      part !== 'src' && 
+      part !== 'output' &&
+      part !== 'tools' &&
+      part !== 'Desktop' &&
+      part !== 'Users'
+    );
+
+    if (parts.length === 0) {
+      return 'DefaultNamespace';
+    }
+
+    // Convert to PascalCase and join with dots
+    const namespaceParts = parts.map(part => {
+      // Handle special cases like numbers and hyphens
+      return part
+        .replace(/^\d+\-?/, '') // Remove leading numbers and hyphens (e.g., "009-" -> "")
+        .split(/[-_]/) // Split on hyphens and underscores
+        .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
+        .join('');
+    }).filter(part => part.length > 0); // Remove empty parts
+
+    // Return namespace without prefix, just the folder structure
+    return namespaceParts.length > 0 
+      ? namespaceParts.join('.')
+      : 'DefaultNamespace';
   }
 
   /**

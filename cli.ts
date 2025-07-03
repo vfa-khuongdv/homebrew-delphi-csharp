@@ -24,8 +24,8 @@ program
   .description('Convert a Delphi file to C#')
   .argument('<input>', 'Input Delphi file path')
   .option('-o, --output <path>', 'Output C# file path')
-  .option('-m, --model <model>', 'LLM model to use', 'gpt-4o-mini')
-  .option('-p, --provider <provider>', 'LLM provider (openai, azure, anthropic, google, ollama)', 'openai')
+  .option('-m, --model <model>', 'LLM model to use')
+  .option('-p, --provider <provider>', 'LLM provider (openai, azure, anthropic, google, ollama, groq)')
   .option('-s, --preserve-structure', 'Preserve directory structure in output')
   .option('-b, --base-dir <dir>', 'Base directory for preserving structure (default: input file directory)')
   .option('-v, --verbose', 'Verbose output')
@@ -34,6 +34,14 @@ program
       console.log(chalk.blue('🔄 Starting Delphi to C# conversion...'));
       
       const config = ConfigManager.getInstance();
+      const savedConfig = config.getConfig();
+      
+      // Use saved config as defaults if options are not provided
+      const provider = options.provider || savedConfig.provider || 'openai';
+      const model = options.model || savedConfig.defaultModel || 'gpt-4o-mini';
+      
+      console.log(chalk.blue(`Using provider: ${provider}, model: ${model}`));
+      
       const fileProcessor = new FileProcessor();
       const converter = new DelphiToCSharpConverter(config);
 
@@ -43,10 +51,10 @@ program
 
       // Convert to C#
       const csharpCode = await converter.convert(delphiCode, {
-        model: options.model,
-        provider: options.provider as LLMProvider,
+        model: model,
+        provider: provider as LLMProvider,
         verbose: options.verbose
-      });
+      }, input);
 
       // Determine output path
       let outputPath: string;
@@ -56,7 +64,7 @@ program
         const baseDir = options.baseDir || path.dirname(input);
         outputPath = fileProcessor.getOutputPathWithStructure(input, 'output', '.cs', baseDir);
       } else {
-        outputPath = `output/${path.basename(input).replace(/\.(pas|dpr|dpk)$/i, '.cs')}`;
+        outputPath = `output/${path.basename(input).replace(/\.(pas|dpr|dpk|dfm|fmx)$/i, '.cs')}`;
       }
 
       // Write output
@@ -74,15 +82,16 @@ program
   .description('Convert multiple Delphi files in a directory')
   .argument('<directory>', 'Directory containing Delphi files')
   .option('-o, --output <dir>', 'Output directory for C# files', 'output')
-  .option('-m, --model <model>', 'LLM model to use', 'gpt-4o-mini')
-  .option('-p, --provider <provider>', 'LLM provider (openai, azure, anthropic, google, ollama)', 'openai')
+  .option('-m, --model <model>', 'LLM model to use')
+  .option('-p, --provider <provider>', 'LLM provider (openai, azure, anthropic, google, ollama, groq)')
   .option('-s, --preserve-structure', 'Preserve directory structure in output (default: true)', true)
-  .option('--pattern <pattern>', 'File pattern to match', '**/*.{pas,dpr,dpk}')
+  .option('--pattern <pattern>', 'File pattern to match', '**/*.{pas,dpr,dpk,inc,dfm,fmx}')
   .action(async (directory, options) => {
     try {
       console.log(chalk.blue('🔄 Starting batch conversion...'));
       
       const config = ConfigManager.getInstance();
+      const savedConfig = config.getConfig();
       const fileProcessor = new FileProcessor();
       const converter = new DelphiToCSharpConverter(config);
 
@@ -93,19 +102,21 @@ program
         console.log(chalk.blue('📁 Preserving directory structure in output'));
       }
 
+      // Use saved config as defaults if options are not provided
+      const provider = options.provider || savedConfig.provider || 'openai';
+      const model = options.model || savedConfig.defaultModel || 'gpt-4o-mini';
+
+      console.log(chalk.blue(`Using provider: ${provider}, model: ${model}`));
+
       for (const file of files) {
         try {
           const delphiCode = await fileProcessor.readFile(file);
           const csharpCode = await converter.convert(delphiCode, {
-            model: options.model,
-            provider: options.provider as LLMProvider
-          });
+            model: model,
+            provider: provider as LLMProvider
+          }, file);
 
-          // Generate output path with preserved structure
-          const outputPath = options.preserveStructure
-            ? fileProcessor.getOutputPathWithStructure(file, options.output, '.cs', directory)
-            : fileProcessor.getOutputPath(file, options.output, '.cs');
-          
+          const outputPath = fileProcessor.getOutputPathWithStructure(file, options.output, '.cs', directory);
           await fileProcessor.writeFile(outputPath, csharpCode);
 
           console.log(chalk.green(`✅ Converted: ${file} -> ${outputPath}`));
@@ -134,9 +145,9 @@ program
         message: 'Select LLM provider:',
         choices: [
           { name: 'OpenAI', value: 'openai' },
-          { name: 'Azure OpenAI', value: 'azure' },
           { name: 'Anthropic Claude', value: 'anthropic' },
           { name: 'Google Gemini', value: 'google' },
+          { name: 'Groq', value: 'groq' },
           { name: 'Ollama (Local)', value: 'ollama' }
         ],
         default: 'openai'
@@ -155,7 +166,6 @@ program
           const provider = answers.provider;
           switch (provider) {
             case 'openai':
-            case 'azure':
               return 'Enter your OpenAI API key:';
             case 'anthropic':
               return 'Enter your Anthropic API key:';
@@ -163,6 +173,8 @@ program
               return 'Enter your Google AI API key:';
             case 'ollama':
               return 'API key (press enter to skip for local Ollama):';
+            case 'groq':
+              return 'Enter your Groq API key:';
             default:
               return 'Enter your API key:';
           }
@@ -196,7 +208,6 @@ program
     // Set the appropriate API key field
     switch (answers.provider) {
       case 'openai':
-      case 'azure':
         configUpdate.openaiApiKey = answers.apiKey;
         break;
       case 'anthropic':
@@ -204,6 +215,9 @@ program
         break;
       case 'google':
         configUpdate.googleApiKey = answers.apiKey;
+        break;
+      case 'groq':
+        configUpdate.groqApiKey = answers.apiKey;
         break;
       case 'ollama':
         configUpdate.ollamaBaseURL = answers.baseURL || 'http://localhost:11434';
