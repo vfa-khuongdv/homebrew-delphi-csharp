@@ -71,7 +71,6 @@ export class DelphiToCSharpConverter {
       // Determine provider and model, prioritizing options over config
       const provider = options.provider || this.config.getConfig().provider || 'openai';
       const model = options.model || this.config.getConfig().defaultModel || 'gpt-4o-mini';
-      const maxTokens = await this.config.getMaxTokensForProvider(provider, model);
 
       const llmConfig: LLMConfig = {
         provider: provider,

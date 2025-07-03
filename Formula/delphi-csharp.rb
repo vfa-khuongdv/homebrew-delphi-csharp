@@ -2,7 +2,7 @@ class DelphiCsharp < Formula
   desc "A CLI tool to convert Delphi code to C#"
   homepage "https://github.com/vfa-khuongdv/homebrew-delphi-csharp"
   url "https://github.com/vfa-khuongdv/homebrew-delphi-csharp/releases/download/v1.0.0/delphi-csharp-1.0.0.tar.gz"
-  sha256 "ce7d8ed3f495be860cb57141bb5076c2c19c25f5cc301429f622bec3f95847fb"
+  sha256 "222d03d063717144c8ca7826badae5bba03a028b9cebd7c2e6515bc58940a077"
   license "MIT"
 
   depends_on "node"
