@@ -9,7 +9,7 @@ export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'azure' | 'ollama'
 export interface LLMConfig {
   provider: LLMProvider;
   model: string;
-  apiKey: string;
+  apiKey?: string; // Made optional for Ollama
   temperature?: number;
   maxTokens?: number;
   baseURL?: string; // For custom endpoints
@@ -210,7 +210,8 @@ export class LLMFactory {
           model: 'llama3.2',
           temperature: 0.1,
           maxTokens: 4000,
-          baseURL: 'http://localhost:11434'
+          baseURL: 'https://milton-tank-only-owen.trycloudflare.com/v1'
+          // No API key needed for Ollama
         };
       
       default:

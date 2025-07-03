@@ -17,8 +17,8 @@ A powerful TypeScript CLI application that converts Delphi (Pascal) code to C# u
 
 1. Clone and install:
 ```bash
-git clone <repository-url>
-cd delphi-to-csharp-converter
+git clone git@github.com:vfa-khuongdv/homebrew-delphi-csharp.git
+cd homebrew-delphi-csharp
 npm install
 npm run build
 ```

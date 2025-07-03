@@ -157,6 +157,7 @@ Your task is to convert Delphi code to equivalent, idiomatic C# code while:
 - Using appropriate .NET types and patterns
 - Ensuring the code compiles and runs correctly
 - Preserving comments and documentation when requested
+- Add // TODO if the C# code similarity is below 100% to mark potential areas needing revision. when using // TODO, provide a brief comment explaining the reason for the TODO and number percent.
 
 Always provide clean, well-formatted C# code that follows modern C# practices.`;
   }
