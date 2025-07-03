@@ -149,7 +149,7 @@ program
           { name: 'Google Gemini', value: 'google' },
           { name: 'Groq', value: 'groq' },
           { name: 'Ollama (Local)', value: 'ollama' },
-          { name: 'VFA office', value: 'vfa' }
+          { name: 'VFA Office', value: 'vfa' }
         ],
         default: 'openai'
       },

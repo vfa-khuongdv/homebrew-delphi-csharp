@@ -41,19 +41,6 @@ export class ConfigManager {
   }
 
   /**
-   * Load configuration from file
-   */
-  private async loadConfig(): Promise<void> {
-    try {
-      const configData = await fs.readFile(this.configPath, 'utf-8');
-      this.config = JSON.parse(configData);
-    } catch (error) {
-      // Config file doesn't exist or is invalid, use defaults
-      this.config = this.getDefaultConfig();
-    }
-  }
-
-  /**
    * Load configuration from file synchronously
    */
   private loadConfigSync(): void {
@@ -201,5 +188,28 @@ export class ConfigManager {
       default:
         return 'openaiApiKey';
     }
+  }
+
+
+  /**
+   * Get maximum tokens for a specific provider and model
+   * 
+   * @param provider 
+   * @param model 
+   * @returns 
+   */
+  async getMaxTokensForProvider(provider: LLMProvider, model: string): Promise<number> {
+    // 1. Retrieve max tokens from files maxTokens.json
+    const maxTokensFilePath = path.join(__dirname, 'maxTokens.json');
+    try {
+      const maxTokensData = JSON.parse(await fs.readFile(maxTokensFilePath, 'utf-8'));
+      if (maxTokensData[provider] && maxTokensData[provider][model]) {
+        return maxTokensData[provider][model];
+      }
+    } catch (error) {
+      console.warn(`Failed to read max tokens from ${maxTokensFilePath}: ${(error as Error).message}`);
+    }
+    // 2. Fallback to default values
+    return 8192; // Fallback default
   }
 }

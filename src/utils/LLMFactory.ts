@@ -32,7 +32,7 @@ export class LLMFactory {
           openAIApiKey: config.apiKey,
           modelName: config.model,
           temperature: config.temperature || 0.1,
-          maxTokens: config.maxTokens || 4000,
+          maxTokens: config.maxTokens,
           configuration: config.baseURL ? {
             baseURL: config.baseURL
           } : undefined
@@ -43,7 +43,7 @@ export class LLMFactory {
           openAIApiKey: config.apiKey,
           modelName: config.model,
           temperature: config.temperature || 0.1,
-          maxTokens: 4000,
+          maxTokens: config.maxTokens ,
           timeout: 30 * 60 * 1000, // 30 minutes
           maxRetries: 0, // No retries for OpenAI
           configuration: {
@@ -56,7 +56,7 @@ export class LLMFactory {
           apiKey: config.apiKey,
           model: config.model,
           temperature: config.temperature || 0.1,
-          maxOutputTokens: config.maxTokens || 4000,
+          maxOutputTokens: config.maxTokens,
         });
       
       case 'anthropic':
@@ -64,7 +64,7 @@ export class LLMFactory {
           anthropicApiKey: config.apiKey,
           modelName: config.model,
           temperature: config.temperature || 0.1,
-          maxTokens: config.maxTokens || 4000,
+          maxTokens: config.maxTokens,
         });
       
       case 'ollama':
@@ -72,14 +72,14 @@ export class LLMFactory {
           baseUrl: config.baseURL || 'http://localhost:11434',
           model: config.model,
           temperature: config.temperature || 0.1,
-          numCtx: config.maxTokens || 4000,
+          numCtx: config.maxTokens,
         });
       case 'groq':
         return new ChatGroq({
           apiKey: config.apiKey,
           model: config.model,
           temperature: config.temperature || 0.1,
-          maxTokens: config.maxTokens || 4000,
+          maxTokens: config.maxTokens,
           baseUrl: config.baseURL ? config.baseURL : undefined,
         });
       default:
