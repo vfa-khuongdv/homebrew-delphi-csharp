@@ -9,6 +9,8 @@ export interface AppConfig {
   anthropicApiKey?: string;
   googleApiKey?: string;
   ollamaBaseURL?: string;
+  vfaApiKey?: string;
+  vfaBaseURL?: string; // For VFA office
   groqApiKey?: string;
   defaultModel: string;
   outputDirectory?: string;
@@ -172,6 +174,8 @@ export class ConfigManager {
         return 'OLLAMA_BASE_URL';
       case 'groq':
         return 'GROQ_API_KEY';
+      case 'vfa':
+        return 'VFA_API_KEY';
       default:
         return 'API_KEY';
     }
@@ -192,6 +196,8 @@ export class ConfigManager {
         return 'ollamaBaseURL';
       case 'groq':
         return 'groqApiKey';
+      case 'vfa':
+        return 'vfaApiKey';
       default:
         return 'openaiApiKey';
     }

@@ -148,7 +148,8 @@ program
           { name: 'Anthropic Claude', value: 'anthropic' },
           { name: 'Google Gemini', value: 'google' },
           { name: 'Groq', value: 'groq' },
-          { name: 'Ollama (Local)', value: 'ollama' }
+          { name: 'Ollama (Local)', value: 'ollama' },
+          { name: 'VFA office', value: 'vfa' }
         ],
         default: 'openai'
       },
@@ -186,13 +187,24 @@ program
         type: 'input',
         name: 'baseURL',
         message: (answers) => {
-          if (answers.provider === 'ollama') {
-            return 'Enter Ollama base URL (press enter for default http://localhost:11434):';
+          if (answers.provider === "ollama") {
+            return 'Enter base URL (press enter for default http://localhost:11434):';
+          }
+          if (answers.provider === "vfa") {
+            return 'Enter base URL (press enter for default https://llm.vitalify.asia/v1):';
           }
           return 'Enter base URL (optional, for custom endpoints):';
         },
-        when: (answers) => answers.provider === 'azure' || answers.provider === 'ollama',
-        default: (answers) => answers.provider === 'ollama' ? 'http://localhost:11434' : ''
+        when: (answers) => [ "vfa", "ollama"].includes(answers.provider),
+        default: (answers) => {
+          if (answers.provider === "ollama") {
+            return 'http://localhost:11434';
+          }
+          if (answers.provider === "vfa") {
+            return 'https://llm.vitalify.asia/v1';
+          }
+          return '';
+        }
       }
     ]);
 
@@ -218,6 +230,10 @@ program
         break;
       case 'groq':
         configUpdate.groqApiKey = answers.apiKey;
+        break;
+      case 'vfa':
+        configUpdate.vfaApiKey = answers.apiKey;
+        configUpdate.vfaBaseURL = answers.baseURL || 'https://llm.vitalify.asia/v1';
         break;
       case 'ollama':
         configUpdate.ollamaBaseURL = answers.baseURL || 'http://localhost:11434';

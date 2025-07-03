@@ -5,7 +5,7 @@ import { ChatOllama } from '@langchain/ollama';
 import { ChatGroq } from '@langchain/groq';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
-export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'azure' | 'ollama' | 'groq'; 
+export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'azure' | 'ollama' | 'groq' | 'vfa'; 
 
 export interface LLMConfig {
   provider: LLMProvider;
@@ -35,6 +35,19 @@ export class LLMFactory {
           configuration: config.baseURL ? {
             baseURL: config.baseURL
           } : undefined
+        });
+
+      case 'vfa':
+        return new ChatOpenAI({
+          openAIApiKey: config.apiKey,
+          modelName: config.model,
+          temperature: config.temperature || 0.1,
+          maxTokens: 4000,
+          timeout: 30 * 60 * 1000, // 30 minutes
+          maxRetries: 0, // No retries for OpenAI
+          configuration: {
+            baseURL: config.baseURL || 'https://llm.vitalify.asia/v1', // Default VFA base URL
+          }
         });
 
       case 'google':
@@ -117,6 +130,15 @@ export class LLMFactory {
           'meta-llama/llama-guard-4-12b'
         ];
         
+      case 'vfa':
+        return [
+          'gpt-4',
+          'gpt-4-turbo',
+          'gpt-4o',
+          'gpt-4o-mini',
+          'gpt-3.5-turbo'
+        ];
+
       default:
         return [];
     }
@@ -194,6 +216,14 @@ export class LLMFactory {
           // No API key needed for Ollama
         };
 
+      case 'vfa':
+        return {
+          provider: 'vfa',
+          model: 'gpt-4o-mini',
+          temperature: 0.1,
+          maxTokens: 4000
+        };
+
       case 'groq':
         return {
           provider: 'groq',
@@ -205,15 +235,5 @@ export class LLMFactory {
       default:
         return {};
     }
-  }
-
-  /**
-   * Extract Azure instance name from base URL
-   */
-  private static extractInstanceName(baseURL?: string): string {
-    if (!baseURL) return '';
-    
-    const match = baseURL.match(/https:\/\/([^.]+)\.openai\.azure\.com/);
-    return match ? match[1] : '';
   }
 }

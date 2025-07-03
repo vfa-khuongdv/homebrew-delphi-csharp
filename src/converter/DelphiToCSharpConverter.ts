@@ -225,8 +225,8 @@ Always provide clean, well-formatted C# code that follows modern C# practices.`;
     switch (provider) {
       case 'ollama':
         return this.config.getConfig().ollamaBaseURL || 'http://localhost:11434';
-      case 'azure':
-        return this.config.getConfig().baseURL;
+      case 'vfa':
+        return this.config.getConfig().vfaBaseURL || 'https://llm.vitalify.asia/v1';
       default:
         return undefined;
     }
