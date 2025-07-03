@@ -81,13 +81,13 @@ export class DelphiToCSharpConverter {
         baseURL: this.getBaseURLForProvider(provider)
       };
       
-      console.log(`LLM Configuration: Using model '${llmConfig.model}' from provider '${llmConfig.provider}' with base URL '${llmConfig.baseURL}'`);
+      console.log(`✨ LLM Configuration: Using model '${llmConfig.model}' from provider '${llmConfig.provider}' with base URL '${llmConfig.baseURL}'`);
 
       // Create a new model instance with the correct configuration for this conversion
       this.chatModel = LLMFactory.createLLM(llmConfig);
 
       // Call LangChain model
-      console.log('🧠 LLM invoking');
+      console.log('✨ LLM invoking');
       const response = await this.chatModel.invoke(messages);
       console.log('✨ LLM response received');
       
