@@ -37,7 +37,7 @@ export class DelphiToCSharpConverter {
       model: config.getConfig().defaultModel || 'gpt-4o-mini',
       apiKey: config.getApiKeyForProvider(defaultProvider),
       temperature: 0.1,
-      maxTokens: 4000,
+      maxTokens: 16384, // Increased to handle larger Delphi files
       baseURL: this.getBaseURLForProvider(defaultProvider)
     };
 
@@ -77,11 +77,11 @@ export class DelphiToCSharpConverter {
         model: model,
         apiKey: this.config.getApiKeyForProvider(provider),
         temperature: 0.1,
-        maxTokens: 4000,
+        maxTokens: 16384, // Note: Increased to handle larger Delphi files
         baseURL: this.getBaseURLForProvider(provider)
       };
       
-      console.log(`✨ LLM Configuration: Using model '${llmConfig.model}' from provider '${llmConfig.provider}' with base URL '${llmConfig.baseURL}'`);
+      console.log(`✨ LLM Configuration: Using model '${llmConfig.model}' from provider '${llmConfig.provider}' with base URL '${llmConfig.baseURL}' and Max Tokens: ${llmConfig.maxTokens}`);
 
       // Create a new model instance with the correct configuration for this conversion
       this.chatModel = LLMFactory.createLLM(llmConfig);
