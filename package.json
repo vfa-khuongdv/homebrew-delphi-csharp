@@ -12,6 +12,7 @@
     "dev": "ts-node cli.ts",
     "watch": "tsc --watch",
     "clean": "rimraf dist",
+    "package": "npm install && npm run build && tar -czvf delphi-csharp-1.0.0.tar.gz dist package.json package-lock.json README.md node_modules",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
