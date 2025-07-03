@@ -87,9 +87,9 @@ export class DelphiToCSharpConverter {
       this.chatModel = LLMFactory.createLLM(llmConfig);
 
       // Call LangChain model
-      console.log('🔄 Invoking LLM...');
+      console.log('🧠 LLM invoking');
       const response = await this.chatModel.invoke(messages);
-      console.log('🔄 LLM response received');
+      console.log('✨ LLM response received');
       
       const csharpCode = await this.outputParser.invoke(response);
 

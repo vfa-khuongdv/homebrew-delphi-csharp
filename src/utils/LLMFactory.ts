@@ -4,6 +4,7 @@ import { ChatAnthropic } from '@langchain/anthropic';
 import { ChatOllama } from '@langchain/ollama';
 import { ChatGroq } from '@langchain/groq';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import modelsData from '../config/models.json';
 
 export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'azure' | 'ollama' | 'groq' | 'vfa'; 
 
@@ -90,58 +91,10 @@ export class LLMFactory {
    * Get available models for a provider
    */
   static getAvailableModels(provider: LLMProvider): string[] {
-    switch (provider) {
-      case 'openai':
-        return [
-          'gpt-4',
-          'gpt-4-turbo',
-          'gpt-4o',
-          'gpt-4o-mini',
-          'gpt-3.5-turbo'
-        ];
-      
-      case 'anthropic':
-        return [
-          'claude-3-5-sonnet-20241022',
-          'claude-3-5-haiku-20241022',
-          'claude-3-opus-20240229',
-          'claude-3-sonnet-20240229',
-          'claude-3-haiku-20240307'
-        ];
-      
-      case 'google':
-        return [
-          'gemini-2.5-pro',
-          'gemini-2.5-flash',
-          'gemini-2.0-pro',
-          'gemini-2.0-flash',
-          'gemini-1.0-pro',
-          'gemini-1.0-pro-vision'
-        ];
-      
-      case 'ollama':
-        return [
-          'qwen2.5-coder:0.5b',
-        ];
-        case 'groq':
-        return [
-          'llama3-70b-8192',
-          'meta-llama/llama-4-scout-17b-16e-instruct',
-          'meta-llama/llama-guard-4-12b'
-        ];
-        
-      case 'vfa':
-        return [
-          'gpt-4',
-          'gpt-4-turbo',
-          'gpt-4o',
-          'gpt-4o-mini',
-          'gpt-3.5-turbo'
-        ];
-
-      default:
-        return [];
+    if (provider in modelsData) {
+      return modelsData[provider as keyof typeof modelsData] || [];
     }
+    return [];
   }
 
   /**
