@@ -162,10 +162,10 @@ export class LLMFactory {
       case 'ollama':
         return {
           provider: 'ollama',
-          model: 'llama3.2',
+          model: 'qwen2.5-coder:0.5b',
           temperature: 0.1,
           maxTokens: 4000,
-          baseURL: 'http:/localhost:11434' // Default Ollama URL
+          baseURL: 'http://localhost:11434' // Default Ollama URL
           // No API key needed for Ollama
         };
 

@@ -154,91 +154,138 @@ program
           { name: 'VFA Office', value: 'vfa' }
         ],
         default: 'openai'
-      },
-      {
-        type: 'list',
-        name: 'model',
-        message: 'Select default model:',
-        choices: (answers) => LLMFactory.getAvailableModels(answers.provider as LLMProvider),
-        default: 'gpt-4o-mini'
-      },
-      {
-        type: 'password',
-        name: 'apiKey',
-        message: (answers) => {
-          const provider = answers.provider;
-          switch (provider) {
-            case 'openai':
-              return 'Enter your OpenAI API key:';
-            case 'anthropic':
-              return 'Enter your Anthropic API key:';
-            case 'google':
-              return 'Enter your Google AI API key:';
-            case 'ollama':
-              return 'API key (press enter to skip for local Ollama):';
-            case 'groq':
-              return 'Enter your Groq API key:';
-            default:
-              return 'Enter your API key:';
-          }
-        },
-        when: (answers) => answers.provider !== 'ollama',
-        mask: '*'
-      },
-      {
-        type: 'input',
-        name: 'baseURL',
-        message: (answers) => {
-          if (answers.provider === "ollama") {
-            return 'Enter base URL (press enter for default http://localhost:11434):';
-          }
-          if (answers.provider === "vfa") {
-            return 'Enter base URL (press enter for default https://llm.vitalify.asia/v1):';
-          }
-          return 'Enter base URL (optional, for custom endpoints):';
-        },
-        when: (answers) => [ "vfa", "ollama"].includes(answers.provider),
-        default: (answers) => {
-          if (answers.provider === "ollama") {
-            return 'http://localhost:11434';
-          }
-          if (answers.provider === "vfa") {
-            return 'https://llm.vitalify.asia/v1';
-          }
-          return '';
-        }
       }
     ]);
+
+    // Handle model selection based on provider
+    let modelAnswer: any;
+    const availableModels = LLMFactory.getAvailableModels(answers.provider as LLMProvider);
+    const modelChoices = [...availableModels, 'Custom model (type your own)'];
+    
+    const modelSelection = await inquirer.prompt({
+      type: 'list',
+      name: 'model',
+      message: 'Select default model:',
+      choices: modelChoices,
+      default: answers.provider === 'ollama' ? 'qwen2.5-coder:7b' : 'gpt-4o-mini'
+    });
+
+    if (modelSelection.model === 'Custom model (type your own)') {
+      const customMessage = answers.provider === 'ollama' 
+        ? 'Enter model name (e.g., qwen2.5-coder:32b, codellama:13b, llama3.2:3b):'
+        : 'Enter custom model name:';
+        
+      modelAnswer = await inquirer.prompt({
+        type: 'input',
+        name: 'model',
+        message: customMessage,
+        validate: (input: string) => {
+          if (!input || input.trim().length === 0) {
+            return 'Model name is required';
+          }
+          return true;
+        }
+      });
+    } else {
+      modelAnswer = { model: modelSelection.model };
+    }
+
+    // Handle API key for non-Ollama providers
+    let apiKeyAnswer: any = {};
+    if (answers.provider !== 'ollama') {
+      const apiKeyMessage = (() => {
+        switch (answers.provider) {
+          case 'openai':
+            return 'Enter your OpenAI API key:';
+          case 'anthropic':
+            return 'Enter your Anthropic API key:';
+          case 'google':
+            return 'Enter your Google AI API key:';
+          case 'groq':
+            return 'Enter your Groq API key:';
+          case 'vfa':
+            return 'Enter your VFA API key:';
+          default:
+            return 'Enter your API key:';
+        }
+      })();
+
+      apiKeyAnswer = await inquirer.prompt({
+        type: 'password',
+        name: 'apiKey',
+        message: apiKeyMessage,
+        mask: '*'
+      });
+    }
+
+    // Handle base URL for specific providers
+    let baseURLAnswer: any = {};
+    if (['vfa', 'ollama'].includes(answers.provider)) {
+      const baseURLMessage = (() => {
+        if (answers.provider === 'ollama') {
+          return 'Enter base URL (press enter for default http://localhost:11434):';
+        }
+        if (answers.provider === 'vfa') {
+          return 'Enter base URL (press enter for default https://llm.vitalify.asia/v1):';
+        }
+        return 'Enter base URL (optional, for custom endpoints):';
+      })();
+
+      const defaultURL = (() => {
+        if (answers.provider === 'ollama') {
+          return 'http://localhost:11434';
+        }
+        if (answers.provider === 'vfa') {
+          return 'https://llm.vitalify.asia/v1';
+        }
+        return '';
+      })();
+
+      baseURLAnswer = await inquirer.prompt({
+        type: 'input',
+        name: 'baseURL',
+        message: baseURLMessage,
+        default: defaultURL
+      });
+    }
+
+    // Combine all answers
+    const finalAnswers = {
+      ...answers,
+      ...modelAnswer,
+      ...apiKeyAnswer,
+      ...baseURLAnswer
+    };
 
     const config = ConfigManager.getInstance();
     
     // Prepare config object based on provider
     const configUpdate: any = {
-      provider: answers.provider,
-      defaultModel: answers.model,
-      baseURL: answers.baseURL
+      provider: finalAnswers.provider,
+      defaultModel: finalAnswers.model,
+      baseURL: finalAnswers.baseURL
     };
 
     // Set the appropriate API key field
-    switch (answers.provider) {
+    switch (finalAnswers.provider) {
       case 'openai':
-        configUpdate.openaiApiKey = answers.apiKey;
+        configUpdate.openaiApiKey = finalAnswers.apiKey;
         break;
       case 'anthropic':
-        configUpdate.anthropicApiKey = answers.apiKey;
+        configUpdate.anthropicApiKey = finalAnswers.apiKey;
         break;
       case 'google':
-        configUpdate.googleApiKey = answers.apiKey;
+        configUpdate.googleApiKey = finalAnswers.apiKey;
         break;
       case 'groq':
-        configUpdate.groqApiKey = answers.apiKey;
+        configUpdate.groqApiKey = finalAnswers.apiKey;
         break;
       case 'vfa':
-        configUpdate.vfaApiKey = answers.apiKey;
-        configUpdate.vfaBaseURL = answers.baseURL || 'https://llm.vitalify.asia/v1';
+        configUpdate.vfaApiKey = finalAnswers.apiKey;
+        configUpdate.vfaBaseURL = finalAnswers.baseURL || 'https://llm.vitalify.asia/v1';
         break;
       case 'ollama':
-        configUpdate.ollamaBaseURL = answers.baseURL || 'http://localhost:11434';
+        configUpdate.ollamaBaseURL = finalAnswers.baseURL || 'http://localhost:11434';
         // No API key needed for Ollama
         break;
     }
@@ -246,8 +293,8 @@ program
     await config.setConfig(configUpdate);
 
     console.log(chalk.green('✅ Configuration saved!'));
-    console.log(chalk.blue(`Provider: ${answers.provider}`));
-    console.log(chalk.blue(`Model: ${answers.model}`));
+    console.log(chalk.blue(`Provider: ${finalAnswers.provider}`));
+    console.log(chalk.blue(`Model: ${finalAnswers.model}`));
   });
 
 program

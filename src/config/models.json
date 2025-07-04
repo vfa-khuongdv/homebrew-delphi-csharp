@@ -22,7 +22,19 @@
     "gemini-1.0-pro-vision"
   ],
   "ollama": [
-    "qwen2.5-coder:0.5b"
+    "qwen2.5-coder:0.5b",
+    "qwen2.5-coder:1.5b",
+    "qwen2.5-coder:7b",
+    "qwen2.5-coder:32b",
+    "codellama:7b",
+    "codellama:13b",
+    "codellama:34b",
+    "llama3.2:1b",
+    "llama3.2:3b",
+    "llama3.2:11b",
+    "deepseek-coder-v2:16b",
+    "starcoder2:7b",
+    "starcoder2:15b"
   ],
   "groq": [
     "llama3-70b-8192",

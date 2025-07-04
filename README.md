@@ -10,7 +10,8 @@ A powerful TypeScript CLI application that converts Delphi (Pascal) code to C# u
 - 🔗 **Import Handling**: Intelligently converts Delphi units and imports to C# namespaces
 - �🎯 **Accurate Mapping**: Proper type conversion and naming convention transformation
 - 🛠 **CLI Interface**: Easy-to-use command-line interface
-- ⚙️ **Multi-LLM Support**: OpenAI, Anthropic Claude, Google Gemini, Azure OpenAI
+- ⚙️ **Multi-LLM Support**: OpenAI, Anthropic Claude, Google Gemini, Groq, Ollama (Local), VFA Office
+- 🎯 **Custom Models**: Support for custom model names across all LLM providers - not limited to predefined models
 - 🔧 **Configurable**: Support for different LLM models and conversion options
 
 ## 🚀 Quick Start
@@ -125,6 +126,16 @@ node dist/cli.js list
 ```bash
 node dist/cli.js setup
 ```
+
+**Custom Model Support**: For all providers, you can now enter custom model names during setup:
+- **OpenAI**: Use any model including newer ones not in the predefined list (e.g., `gpt-4-turbo-preview`, `gpt-3.5-turbo-16k`)
+- **Anthropic**: Enter any Claude model variant (e.g., `claude-3-opus-20240229`, `claude-3-5-sonnet-20241022`)
+- **Google**: Use any Gemini model (e.g., `gemini-1.5-pro`, `gemini-1.0-pro-vision`)
+- **Groq**: Enter any available model (e.g., `mixtral-8x7b-32768`, `llama2-70b-4096`)
+- **Ollama**: Choose from popular models or enter any model you've pulled (e.g., `qwen2.5-coder:32b`, `codellama:13b`, `deepseek-coder-v2`)
+- **VFA Office**: Use any supported model in your VFA instance
+
+All providers now work consistently: select from predefined popular models or choose "Custom model (type your own)" to enter any model name.
 
 ## 📁 How to Convert All Source Code in a Folder
 
@@ -475,25 +486,43 @@ npm run watch
 
 ## 🤖 Supported LLM Providers
 
+**All providers support custom models**: You can use any model name, not just the predefined ones listed below.
+
 ### OpenAI
-- **Models**: gpt-4, gpt-4-turbo, gpt-4o, gpt-4o-mini, gpt-3.5-turbo
+- **Predefined Models**: gpt-4, gpt-4-turbo, gpt-4o, gpt-4o-mini, gpt-3.5-turbo
+- **Custom Models**: Any OpenAI model (e.g., `gpt-4-turbo-preview`, `gpt-3.5-turbo-16k`)
 - **Setup**: Requires OpenAI API key
 - **Usage**: `node cli.js convert input.pas -p openai -m gpt-4o`
 
 ### Anthropic Claude
-- **Models**: claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022, claude-3-opus-20240229
+- **Predefined Models**: claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022, claude-3-opus-20240229
+- **Custom Models**: Any Claude model variant available to your API key
 - **Setup**: Requires Anthropic API key
 - **Usage**: `node cli.js convert input.pas -p anthropic -m claude-3-5-sonnet-20241022`
 
 ### Google Gemini
-- **Models**: gemini-1.5-pro, gemini-1.5-flash, gemini-1.0-pro
+- **Predefined Models**: gemini-2.5-pro, gemini-2.5-flash, gemini-2.0-pro, gemini-2.0-flash
+- **Custom Models**: Any Gemini model (e.g., `gemini-1.5-pro`, `gemini-1.0-pro-vision`)
 - **Setup**: Requires Google AI API key
-- **Usage**: `node cli.js convert input.pas -p google -m gemini-1.5-flash`
+- **Usage**: `node cli.js convert input.pas -p google -m gemini-2.5-flash`
 
-### Azure OpenAI
-- **Models**: gpt-4, gpt-4-turbo, gpt-35-turbo
-- **Setup**: Requires Azure OpenAI API key and base URL
-- **Usage**: `node cli.js convert input.pas -p azure -m gpt-4`
+### Groq
+- **Predefined Models**: llama3-70b-8192, meta-llama/llama-4-scout-17b-16e-instruct
+- **Custom Models**: Any model available on Groq (e.g., `mixtral-8x7b-32768`)
+- **Setup**: Requires Groq API key
+- **Usage**: `node cli.js convert input.pas -p groq -m llama3-70b-8192`
+
+### Ollama (Local)
+- **Predefined Models**: qwen2.5-coder:0.5b, qwen2.5-coder:7b, codellama:7b, codellama:13b, llama3.2:3b, deepseek-coder-v2:16b, starcoder2:7b, and more
+- **Custom Models**: Any model you've pulled with `ollama pull` (e.g., `codellama:34b`, `qwen2.5-coder:32b`)
+- **Setup**: No API key required, just local Ollama installation
+- **Usage**: `node cli.js convert input.pas -p ollama -m qwen2.5-coder:7b`
+
+### VFA Office
+- **Predefined Models**: gpt-4, gpt-4-turbo, gpt-4o, gpt-4o-mini, gpt-3.5-turbo
+- **Custom Models**: Any model supported by your VFA instance
+- **Setup**: Requires VFA API key and base URL
+- **Usage**: `node cli.js convert input.pas -p vfa -m gpt-4o`
 
 ## ⚙️ Configuration
 
