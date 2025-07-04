@@ -64,7 +64,9 @@ program
         const baseDir = options.baseDir || path.dirname(input);
         outputPath = fileProcessor.getOutputPathWithStructure(input, 'output', baseDir);
       } else {
-        outputPath = `output/${path.basename(input).replace(/\.(pas|dpr|dpk|dfm|fmx)$/i, '.cs')}`;
+        // Use helper method to get proper C# filename with correct extension
+        const csharpFileName = fileProcessor.getCSharpFileName(input);
+        outputPath = `output/${csharpFileName}`;
       }
 
       // Write output

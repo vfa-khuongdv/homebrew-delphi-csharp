@@ -196,4 +196,22 @@ export class FileProcessor {
       throw new Error(`Failed to get modification time for ${filePath}: ${(error as Error).message}`);
     }
   }
+
+  /**
+   * Get appropriate C# file extension based on input file type
+   */
+  getCSharpExtension(inputPath: string): string {
+    const ext = path.extname(inputPath).toLowerCase();
+    const isDesignFile = ['.dfm', '.fmx'].includes(ext);
+    return isDesignFile ? '.Designer.cs' : '.cs';
+  }
+
+  /**
+   * Get output file name with proper C# extension
+   */
+  getCSharpFileName(inputPath: string): string {
+    const fileName = path.basename(inputPath, path.extname(inputPath));
+    const extension = this.getCSharpExtension(inputPath);
+    return fileName + extension;
+  }
 }

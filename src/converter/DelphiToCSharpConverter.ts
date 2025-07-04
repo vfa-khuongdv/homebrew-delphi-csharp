@@ -147,6 +147,11 @@ ${JSON.stringify(parsedStructure, null, 2)}
 7. Use proper C# syntax and idioms
 8. Use the suggested namespace: ${namespace} (or a similar meaningful namespace based on the project structure)
 9. Avoid generic namespaces like "YourNamespace", "ConvertedCode", "Namespace1", etc.
+10. **CRITICAL FOR UI CONTROLS:** For Windows Forms applications, ALWAYS add both Name and AccessibleName properties for ALL UI controls in the Designer.cs file:
+    - this.controlName.Name = "controlName";
+    - this.controlName.AccessibleName = "controlName";
+    
+    This applies to: Button, TextBox, Label, ComboBox, ListBox, CheckBox, RadioButton, GroupBox, Panel, TabControl, TabPage, DataGridView, etc.
 
 Please provide only the converted C# code without explanation.`;
   }
@@ -162,6 +167,7 @@ You have deep knowledge of:
 - C# language features and best practices
 - Common migration patterns and pitfalls
 - .NET framework capabilities
+- Windows Forms and WPF development
 
 Your task is to convert Delphi code to equivalent, idiomatic C# code while:
 - Maintaining the original functionality
@@ -173,6 +179,19 @@ Your task is to convert Delphi code to equivalent, idiomatic C# code while:
 // Example: 
 - // TODO: This code is not 100% similar to Delphi, similarity is 95%.
 - // Suggest: Suggestion for the coder the way to fix or improve the code, if applicable.
+
+**IMPORTANT FOR WINDOWS FORMS CONTROLS:**
+When converting Delphi VCL controls to Windows Forms controls, ALWAYS add both Name and AccessibleName properties for accessibility compliance:
+- this.controlName.Name = "controlName";
+- this.controlName.AccessibleName = "controlName";
+
+This applies to ALL UI controls including: Button, TextBox, Label, ComboBox, ListBox, CheckBox, RadioButton, GroupBox, Panel, TabControl, TabPage, DataGridView, MenuStrip, ToolStrip, StatusStrip, TreeView, ListView, PictureBox, ProgressBar, TrackBar, NumericUpDown, DateTimePicker, etc.
+
+Example for C# Windows Forms Designer code:
+this.button1.Name = "button1";
+this.button1.AccessibleName = "button1";
+this.textBox1.Name = "textBox1";
+this.textBox1.AccessibleName = "textBox1";
 
 Always provide clean, well-formatted C# code that follows modern C# practices.`;
   }

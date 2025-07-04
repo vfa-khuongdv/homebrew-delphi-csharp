@@ -21,6 +21,9 @@ export class CSharpGenerator {
     // Ensure proper namespace structure
     formatted = this.ensureNamespace(formatted);
 
+    // Add AccessibleName properties for Windows Forms controls
+    formatted = this.addAccessibleNameProperties(formatted);
+
     // Clean up extra whitespace
     formatted = this.cleanupWhitespace(formatted);
 
@@ -88,13 +91,49 @@ export class CSharpGenerator {
       'using System.Text;'
     ];
 
+    // Check if this appears to be a Windows Forms file
+    const isWindowsForms = /\b(Button|TextBox|Label|ComboBox|Form|Control)\b/.test(code);
+    const winFormsUsings = [
+      'using System.ComponentModel;',
+      'using System.Data;',
+      'using System.Drawing;',
+      'using System.Windows.Forms;'
+    ];
+
     // Check if using statements already exist
     const hasUsings = /^\s*using\s+/m.test(code);
     
     if (!hasUsings) {
       // Add basic using statements at the top
-      const usingsBlock = commonUsings.join('\n') + '\n\n';
+      let usingsToAdd = [...commonUsings];
+      if (isWindowsForms) {
+        usingsToAdd = [...usingsToAdd, ...winFormsUsings];
+      }
+      const usingsBlock = usingsToAdd.join('\n') + '\n\n';
       return usingsBlock + code;
+    } else if (isWindowsForms) {
+      // Check if Windows Forms usings are already present
+      const missingWinFormsUsings = winFormsUsings.filter(usingStmt => 
+        !code.includes(usingStmt.replace('using ', '').replace(';', ''))
+      );
+      
+      if (missingWinFormsUsings.length > 0) {
+        // Find the last using statement and add missing ones
+        const lines = code.split('\n');
+        let lastUsingIndex = -1;
+        
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].trim().startsWith('using ')) {
+            lastUsingIndex = i;
+          }
+        }
+        
+        if (lastUsingIndex >= 0) {
+          const beforeUsings = lines.slice(0, lastUsingIndex + 1);
+          const afterUsings = lines.slice(lastUsingIndex + 1);
+          return [...beforeUsings, ...missingWinFormsUsings, ...afterUsings].join('\n');
+        }
+      }
     }
 
     return code;
@@ -273,5 +312,44 @@ export class CSharpGenerator {
     return str
       .replace(/^[A-Z]/, char => char.toLowerCase())
       .replace(/_([a-z])/g, (_, char) => char.toUpperCase());
+  }
+
+  /**
+   * Add AccessibleName properties for Windows Forms controls
+   */
+  private addAccessibleNameProperties(code: string): string {
+
+    const lines = code.split('\n');
+    const result: string[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      result.push(line);
+      
+      // Look for control Name assignments with or without 'this.' prefix
+      // Patterns: this.button1.Name = "button1"; OR button1.Name = "button1";
+      const nameAssignmentMatch = line.match(/^\s*(?:this\.)?(\w+)\.Name\s*=\s*"([^"]+)";?\s*$/);
+      
+      if (nameAssignmentMatch) {
+        const controlName = nameAssignmentMatch[1];
+        const nameValue = nameAssignmentMatch[2];
+        const indent = line.match(/^(\s*)/)?.[1] || '';
+        
+        // Check if the next line already has AccessibleName
+        const nextLine = i + 1 < lines.length ? lines[i + 1] : '';
+        const hasAccessibleName = nextLine.includes(`${controlName}.AccessibleName`);
+        
+        if (!hasAccessibleName) {
+          // Determine if we should use 'this.' prefix based on the original line
+          const useThisPrefix = line.includes('this.');
+          const thisPrefix = useThisPrefix ? 'this.' : '';
+          
+          // Add AccessibleName property right after Name property
+          result.push(`${indent}${thisPrefix}${controlName}.AccessibleName = "${nameValue}";`);
+        }
+      }
+    }
+    
+    return result.join('\n');
   }
 }
